@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#141923">
+<title>Train Hotel: Demircan Oteli</title>
+<style>
+:root{--bg-dark:#141923;--panel:rgba(22,29,42,.94);--gold:#f59e0b;--green:#10b981;--purple:#a855f7;--blue:#3b82f6;--red:#ef4444;--text:#f8fafc;--muted:#94a3b8}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#1e293b;color:var(--text);overflow:hidden;width:100vw;height:100vh;height:100dvh;touch-action:none}
+canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+canvas:active{cursor:grabbing}
+.hud-top{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;pointer-events:none;z-index:10}
+.stats-group{display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}
+.pill{background:var(--panel);border:1.5px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 12px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
+.pill .val{font-variant-numeric:tabular-nums}.pill.money{border-color:rgba(16,185,129,.5);color:#6ee7b7}.pill.gems{border-color:rgba(168,85,247,.5);color:#d8b4fe}.pill.rep{border-color:rgba(245,158,11,.5);color:#fcd34d}.pill.sat{border-color:rgba(59,130,246,.5);color:#93c5fd}.pill.time{border-color:rgba(255,255,255,.2);color:#e2e8f0}
+.nav-bar{position:fixed;top:calc(56px + env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;z-index:10;scrollbar-width:none}.nav-bar::-webkit-scrollbar{display:none}
+.nav-btn{background:rgba(15,23,42,.88);border:1px solid rgba(255,255,255,.15);color:#e2e8f0;padding:6px 11px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}.nav-btn:hover,.nav-btn.active{background:var(--blue);border-color:#60a5fa;color:#fff}.nav-btn.locked{opacity:.55}
+.hud-bottom{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;z-index:10}
+.action-group{display:flex;gap:8px;pointer-events:auto}
+.btn-main{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:14px;padding:12px 16px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 6px 18px rgba(37,99,235,.45)}
+.btn-main:active{transform:scale(.95)}.btn-main.gold{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 6px 18px rgba(245,158,11,.4)}.btn-main.purple{background:linear-gradient(135deg,#9333ea,#7e22ce);box-shadow:0 6px 18px rgba(147,51,234,.4)}
+.btn-icon{background:var(--panel);border:1px solid rgba(255,255,255,.18);color:#fff;width:46px;height:46px;border-radius:14px;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.quest-box{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));left:12px;background:var(--panel);border:1px solid rgba(245,158,11,.45);border-radius:14px;padding:10px 14px;max-width:min(290px,75vw);z-index:9;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer}
+.quest-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);font-weight:800}.quest-desc{font-size:13px;font-weight:600;margin:3px 0 6px}.quest-bar{height:6px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}.quest-fill{height:100%;background:var(--green);width:0%;transition:width .25s}.quest-reward{font-size:11px;color:#6ee7b7;margin-top:4px;font-weight:700}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:50}.modal-backdrop.open{display:flex}
+.modal-sheet{background:#0f172a;border-top:2px solid rgba(255,255,255,.15);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:82vh;max-height:82dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .22s ease-out;padding-bottom:env(safe-area-inset-bottom)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center}.modal-header h2{font-size:18px;font-weight:800}.close-btn{background:rgba(255,255,255,.1);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer}
+.tabs{display:flex;gap:6px;padding:10px 16px;background:#1e293b;overflow-x:auto}.tab{padding:7px 13px;border-radius:10px;font-size:13px;font-weight:700;background:transparent;color:var(--muted);border:0;cursor:pointer;white-space:nowrap}.tab.active{background:var(--blue);color:#fff}
+.modal-body{padding:14px 16px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}.upg-card{background:#1e293b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}.upg-info{min-width:0}.upg-info h4{font-size:14px;font-weight:700;margin-bottom:3px}.upg-info p{font-size:12px;color:var(--muted);line-height:1.35}.upg-lvl{font-size:11px;color:#60a5fa;font-weight:700;margin-top:4px}
+.buy-btn{background:var(--green);color:#064e3b;border:0;border-radius:11px;padding:9px 13px;font-weight:800;font-size:13px;cursor:pointer;min-width:92px;text-align:center;flex-shrink:0}.buy-btn:disabled{background:#334155;color:#64748b;cursor:not-allowed}.buy-btn.gem-btn{background:var(--purple);color:#fff}
+.toast{position:fixed;top:calc(104px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(16,185,129,.95);color:#022c22;font-weight:800;font-size:13px;padding:8px 16px;border-radius:999px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:90vw;text-align:center}.toast.show{opacity:1}
+@media(max-width:520px){.pill{font-size:11px;padding:5px 8px}.hud-top{gap:5px}.stats-group{gap:4px}.btn-main{font-size:12px;padding:11px 10px}.quest-box{max-width:230px}.hud-bottom{left:8px;right:8px}.action-group{gap:5px}}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div class="hud-top">
+  <div class="stats-group">
+    <div class="pill money">💵 <span class="val" id="uiMoney">300</span></div>
+    <div class="pill gems">💎 <span class="val" id="uiGems">20</span></div>
+    <div class="pill rep">⭐ <span class="val" id="uiStars">1.0</span></div>
+    <div class="pill sat">😊 <span class="val" id="uiSat">%100</span></div>
+  </div>
+  <div class="stats-group"><div class="pill time" id="uiRoute">🚂 Demircan • Bozkır Ekspresi • <span id="uiClock">08:00</span></div></div>
+</div>
+<div class="nav-bar" id="navBar"></div>
+<div class="quest-box" id="questBox" onclick="claimQuest()">
+  <div class="quest-title" id="qTitle">GÖREV #1</div><div class="quest-desc" id="qDesc">Yükleniyor...</div>
+  <div class="quest-bar"><div class="quest-fill" id="qFill"></div></div><div class="quest-reward" id="qReward">Ödül: +250 💵</div>
+</div>
+<div class="hud-bottom">
+  <div class="action-group">
+    <button class="btn-icon" onclick="openSettings()" title="Kayıt & Ayarlar">⚙️</button>
+    <button class="btn-icon" onclick="boostSpeed()" id="boostBtn" title="2x Hızlandırma">⚡</button>
+  </div>
+  <div class="action-group">
+    <button class="btn-main gold" onclick="openModal('routes')">🗺️ Rotalar</button>
+    <button class="btn-main" onclick="openModal('upgrades')">🚆 Vagon & Geliştir</button>
+  </div>
+</div>
+<div class="toast" id="toast">Oyun kaydedildi!</div>
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-header"><h2 id="modalTitle">Tren Yönetimi</h2><button class="close-btn" onclick="closeModal()">✕</button></div>
+    <div class="tabs" id="modalTabs"></div><div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<script>
+// ==================== KALICI KAYIT SİSTEMİ ====================
+const SAVE_KEY='train_hotel_demircan_oteli_save_v1';
+const DEFAULT_STATE={
+ money:300,gems:20,totalEarned:300,totalCleaned:0,totalServed:0,satisfaction:100,gameMinutes:480,routeIndex:0,prestigeCount:0,
+ wagons:{
+  reception:{unlocked:true,level:1,desks:1,speed:1,priceLvl:1},
+  sleeper1:{unlocked:true,level:1,beds:2,comfort:1,priceLvl:1},
+  bistro:{unlocked:false,level:1,tables:2,chefs:1,priceLvl:1},
+  sleeper2:{unlocked:false,level:1,beds:2,comfort:1,priceLvl:1},
+  lounge:{unlocked:false,level:1,seats:2,bartender:1,priceLvl:1},
+  spa:{unlocked:false,level:1,baths:2,therapist:1,priceLvl:1},
+  arcade:{unlocked:false,level:1,games:2,attendant:1,priceLvl:1},
+  vip:{unlocked:false,level:1,suites:1,butler:1,priceLvl:1}
+ },staff:{cleanerBot:0,manager:0,marketing:0},questIndex:0,questProgress:0,lastSaveTime:Date.now()
+};
+let state=loadGame();
+function loadGame(){
+ try{
+  const raw=localStorage.getItem(SAVE_KEY);if(!raw)return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  const parsed=JSON.parse(raw),merged=JSON.parse(JSON.stringify(DEFAULT_STATE));Object.assign(merged,parsed);
+  for(const k in DEFAULT_STATE.wagons)if(parsed.wagons&&parsed.wagons[k])Object.assign(merged.wagons[k],parsed.wagons[k]);
+  if(parsed.staff)Object.assign(merged.staff,parsed.staff);
+  return merged;
+ }catch(e){return JSON.parse(JSON.stringify(DEFAULT_STATE))}
+}
+function saveGame(showNotif=false){
+ try{state.lastSaveTime=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(state));if(showNotif)showToast('💾 Demircan Oteli kaydı alındı!')}
+ catch(e){console.warn('Kayıt hatası:',e);if(showNotif)showToast('Kayıt yapılamadı.')}
+}
+window.addEventListener('beforeunload',()=>saveGame(false));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame(false)});
+setInterval(()=>saveGame(false),5000);
+
+// ==================== ROTALAR & VAGONLAR ====================
+const ROUTES=[
+ {name:'Bozkır Ekspresi',mult:1,cost:0,bg:'#4d7c47',tree:'#2f5e2a',track:'#57534e'},
+ {name:'Çam Ormanı Hattı',mult:1.6,cost:5000,bg:'#2d5a3c',tree:'#193d25',track:'#44403c'},
+ {name:'Kızıl Kanyon Rotası',mult:2.5,cost:25000,bg:'#b45309',tree:'#78350f',track:'#292524'},
+ {name:'Alpler Kar Ekspresi',mult:4,cost:120000,bg:'#cbd5e1',tree:'#475569',track:'#334155'},
+ {name:'Kuzey Işıkları Hattı',mult:7.5,cost:600000,bg:'#1e1b4b',tree:'#312e81',track:'#0f172a'},
+ {name:'Altın Şehir Ekspresi',mult:15,cost:3000000,bg:'#3f2e21',tree:'#713f12',track:'#1c1917'}
+];
+const WAGON_META=[
+ {key:'reception',name:'1. Resepsiyon',unlockCost:0,baseIncome:18},
+ {key:'sleeper1',name:'2. Standart Yataklı',unlockCost:0,baseIncome:32},
+ {key:'bistro',name:'3. Restoran & Mutfak',unlockCost:650,baseIncome:65},
+ {key:'sleeper2',name:'4. Aile Yataklı',unlockCost:2400,baseIncome:130},
+ {key:'lounge',name:'5. Dinlenme Salonu',unlockCost:9500,baseIncome:280},
+ {key:'spa',name:'6. Termal Spa & Hamam',unlockCost:38000,baseIncome:620},
+ {key:'arcade',name:'7. Eğlence & Oyun Salonu',unlockCost:150000,baseIncome:1450},
+ {key:'vip',name:'8. Demircan VIP Süit',unlockCost:650000,baseIncome:3800}
+];
+const QUESTS=[
+ {type:'clean',target:3,desc:'Vagonlardaki 3 çöpü dokunarak temizle',rewardMoney:250,rewardGems:3},
+ {type:'serve',target:10,desc:'10 yolcuya hizmet ver',rewardMoney:500,rewardGems:5},
+ {type:'unlock_bistro',target:1,desc:'3. Vagon olan Restoran & Mutfağı aç',rewardMoney:1200,rewardGems:8},
+ {type:'earn',target:3000,desc:'Toplam 3.000 💵 kazan',rewardMoney:1800,rewardGems:10},
+ {type:'unlock_sleeper2',target:1,desc:'4. Vagon olan Aile Yataklıyı aç',rewardMoney:4500,rewardGems:12},
+ {type:'clean',target:15,desc:'Toplam 15 çöp temizle',rewardMoney:7000,rewardGems:15},
+ {type:'unlock_lounge',target:1,desc:'5. Vagon olan Dinlenme Salonunu aç',rewardMoney:18000,rewardGems:20},
+ {type:'route_1',target:1,desc:'Rotalar menüsünden Çam Ormanı Hattına geç',rewardMoney:30000,rewardGems:25},
+ {type:'unlock_spa',target:1,desc:'6. Vagon olan Termal Spa & Hamamı aç',rewardMoney:75000,rewardGems:30},
+ {type:'unlock_arcade',target:1,desc:'7. Vagon olan Eğlence Salonunu aç',rewardMoney:280000,rewardGems:40},
+ {type:'unlock_vip',target:1,desc:'8. Vagon olan Demircan VIP Süiti aç',rewardMoney:1000000,rewardGems:60},
+ {type:'earn',target:5000000,desc:'5.000.000 💵 servete ulaş',rewardMoney:2500000,rewardGems:100}
+];
+function calcIncomePerSec(){
+ const routeMult=ROUTES[Math.min(state.routeIndex,ROUTES.length-1)].mult,prestigeMult=1+state.prestigeCount*.5,satMult=.5+(state.satisfaction/100)*.7;let total=0;
+ WAGON_META.forEach(meta=>{const w=state.wagons[meta.key];if(!w.unlocked)return;const subLvl=Object.values(w).reduce((a,b)=>typeof b==='number'?a+b:a,0);total+=meta.baseIncome*(1+(subLvl-3)*.35)});
+ return total*routeMult*prestigeMult*satMult;
+}
+(function handleOfflineEarnings(){
+ const now=Date.now(),diffSec=Math.min(14400,Math.max(0,Math.floor((now-(state.lastSaveTime||now))/1000)));
+ if(diffSec>20){const perSec=calcIncomePerSec()*(.4+state.staff.manager*.12),earned=Math.floor(perSec*diffSec);if(earned>0){state.money+=earned;state.totalEarned+=earned;setTimeout(()=>showToast(`👋 Yeniden hoş geldin! +${fmt(earned)} 💵 birikti!`),600)}}
+})();
+
+// ==================== YARDIMCILAR & CANVAS ====================
+function fmt(n){if(n<1000)return Math.floor(n).toString();const units=['K','M','B','T','Qa'];let u=-1,val=n;while(val>=1000&&u<units.length-1){val/=1000;u++}return val.toFixed(val>=100?0:val>=10?1:2)+units[u]}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2400)}
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight});
+let camX=0,camY=0,targetCamX=0,targetCamY=0,isDragging=false,dragStartX=0,dragStartY=0,dragMoved=false;
+let passengers=[],trashes=[],floatingTexts=[],trees=[],trainOffset=0,speedBoostTimer=0;
+const WAGON_SPACING=330;
+function wagonWorldPos(index){return{x:index*WAGON_SPACING*.85,y:-index*WAGON_SPACING*.48}}
+for(let i=0;i<45;i++)trees.push({x:(Math.random()-.3)*3800,y:(Math.random()-.5)*2600,size:22+Math.random()*24});
+function focusWagon(idx){const pos=wagonWorldPos(idx);targetCamX=pos.x;targetCamY=pos.y;renderNavBar()}
+function renderNavBar(){
+ const bar=document.getElementById('navBar');bar.innerHTML='';
+ WAGON_META.forEach((w,idx)=>{const unlocked=state.wagons[w.key].unlocked,btn=document.createElement('button');btn.className='nav-btn'+(unlocked?'':' locked');btn.textContent=(unlocked?'🚃 ':'🔒 ')+w.name;btn.onclick=()=>focusWagon(idx);bar.appendChild(btn)});
+}
+function calcStarRating(){let unlockedCount=0,totalLvls=0;WAGON_META.forEach(m=>{const w=state.wagons[m.key];if(w.unlocked){unlockedCount++;totalLvls+=w.level}});return Math.min(5,1+(unlockedCount-2)*.4+totalLvls*.04+state.routeIndex*.25).toFixed(1)}
+function spawnPassenger(){
+ const ids=WAGON_META.map((m,i)=>state.wagons[m.key].unlocked?i:-1).filter(i=>i>=0);if(!ids.length||passengers.length>=28)return;
+ const wIdx=ids[Math.floor(Math.random()*ids.length)],wp=wagonWorldPos(wIdx),colors=['#38bdf8','#f472b6','#fbbf24','#34d399','#a78bfa','#fb7185'];
+ passengers.push({wIdx,x:wp.x+(Math.random()-.5)*95,y:wp.y+(Math.random()-.5)*55,tx:wp.x+(Math.random()-.5)*95,ty:wp.y+(Math.random()-.5)*55,color:colors[Math.floor(Math.random()*colors.length)],progress:Math.random(),speed:.16+Math.random()*.14});
+}
+function spawnTrash(){
+ const ids=WAGON_META.map((m,i)=>state.wagons[m.key].unlocked?i:-1).filter(i=>i>=0);if(!ids.length||trashes.length>=18)return;
+ const wIdx=ids[Math.floor(Math.random()*ids.length)],wp=wagonWorldPos(wIdx);trashes.push({id:Math.random(),wIdx,x:wp.x+(Math.random()-.5)*100,y:wp.y+(Math.random()-.5)*55,type:Math.random()>.5?'paper':'can'});
+}
+function addFloatingText(x,y,text,color='#6ee7b7'){floatingTexts.push({x,y,text,color,alpha:1,vy:-28})}
+canvas.addEventListener('pointerdown',e=>{isDragging=true;dragMoved=false;dragStartX=e.clientX;dragStartY=e.clientY});
+canvas.addEventListener('pointermove',e=>{if(!isDragging)return;const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;if(Math.hypot(dx,dy)>6)dragMoved=true;targetCamX-=dx;targetCamY-=dy;camX-=dx;camY-=dy;dragStartX=e.clientX;dragStartY=e.clientY});
+canvas.addEventListener('pointerup',e=>{isDragging=false;if(!dragMoved)handleCanvasClick(e.clientX,e.clientY)});
+canvas.addEventListener('pointercancel',()=>{isDragging=false});
+function handleCanvasClick(sx,sy){
+ const wx=sx-W/2+camX,wy=sy-H/2+camY;
+ for(let i=trashes.length-1;i>=0;i--){const t=trashes[i];if(Math.hypot(wx-t.x,wy-t.y)<34){trashes.splice(i,1);const bonus=Math.max(15,Math.floor(calcIncomePerSec()*.45));state.money+=bonus;state.totalEarned+=bonus;state.totalCleaned++;state.satisfaction=Math.min(100,state.satisfaction+4);addFloatingText(t.x,t.y-12,`+${fmt(bonus)} 💵 Temiz!`,'#fde047');return}}
+ WAGON_META.forEach((m,idx)=>{const wp=wagonWorldPos(idx);if(Math.hypot(wx-wp.x,wy-wp.y)<95)openModal('upgrades',m.key)});
+}
+function questProgressData(){
+ const q=QUESTS[state.questIndex%QUESTS.length],cycleMult=Math.pow(3,Math.floor(state.questIndex/QUESTS.length));let cur=0,target=q.target;
+ if(q.type==='clean'){target=q.target*cycleMult;cur=state.totalCleaned}else if(q.type==='serve'){target=q.target*cycleMult;cur=state.totalServed}else if(q.type==='earn'){target=q.target*cycleMult;cur=state.totalEarned}else if(q.type.startsWith('unlock_')){const key=q.type.replace('unlock_','');cur=state.wagons[key]?.unlocked?1:0}else if(q.type==='route_1')cur=state.routeIndex>=1?1:0;
+ return{q,cycleMult,cur,target,rewardMoney:q.rewardMoney*cycleMult};
+}
+function updateQuestUI(){
+ const d=questProgressData(),pct=Math.min(100,Math.floor(d.cur/d.target*100));
+ document.getElementById('qTitle').textContent=`GÖREV #${state.questIndex+1} ${pct>=100?'✅ HAZIR!':''}`;
+ document.getElementById('qDesc').textContent=d.q.desc;document.getElementById('qFill').style.width=pct+'%';
+ document.getElementById('qReward').textContent=pct>=100?`Dokun ve Ödülü Al: +${fmt(d.rewardMoney)} 💵 +${d.q.rewardGems} 💎`:`İlerleme: ${fmt(Math.min(d.cur,d.target))} / ${fmt(d.target)} • Ödül: +${fmt(d.rewardMoney)} 💵`;
+}
+function claimQuest(){
+ const d=questProgressData();if(d.cur<d.target){showToast('Görev henüz tamamlanmadı!');return}
+ state.money+=d.rewardMoney;state.totalEarned+=d.rewardMoney;state.gems+=d.q.rewardGems;state.questIndex++;saveGame(false);showToast(`🎉 Görev tamamlandı! +${fmt(d.rewardMoney)} 💵 +${d.q.rewardGems} 💎`);updateQuestUI();
+}
+function boostSpeed(){if(speedBoostTimer>0)return;speedBoostTimer=30;showToast('⚡ 30 saniye boyunca 2x tren hızı ve kazanç!')}
+let currentModalMode='upgrades',currentTabKey='reception';
+function openModal(mode,tabKey=null){currentModalMode=mode;if(tabKey)currentTabKey=tabKey;document.getElementById('modalBackdrop').classList.add('open');renderModal()}
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('open')}
+function closeModalOnBg(e){if(e.target.id==='modalBackdrop')closeModal()}
+function renderModal(){
+ const title=document.getElementById('modalTitle'),tabs=document.getElementById('modalTabs'),body=document.getElementById('modalBody');tabs.innerHTML='';body.innerHTML='';
+ if(currentModalMode==='routes'){
+  title.textContent='🗺️ Demircan Oteli Rotaları & Prestij';
+  ROUTES.forEach((r,idx)=>{const active=state.routeIndex===idx,unlocked=state.routeIndex>=idx,card=document.createElement('div');card.className='upg-card';card.innerHTML=`<div class="upg-info"><h4>${r.name} ${active?'✅ (Aktif)':''}</h4><p>Tüm vagon gelirleri <b>${r.mult}x</b> ile çarpılır.</p><div class="upg-lvl">${unlocked?'Rota Açık':'Yeni Bölge Kilidi'}</div></div><button class="buy-btn" ${active||(!unlocked&&state.money<r.cost)?'disabled':''} onclick="buyRoute(${idx})">${active?'Aktif':unlocked?'Seç':fmt(r.cost)+' 💵'}</button>`;body.appendChild(card)});
+  const req=10000000*Math.pow(5,state.prestigeCount),pc=document.createElement('div');pc.className='upg-card';pc.style.borderColor='#a855f7';pc.innerHTML=`<div class="upg-info"><h4>👑 Demircan İmparatorluğu (Prestij #${state.prestigeCount+1})</h4><p>Treni sıfırlayarak kalıcı <b>+%50 gelir bonusu</b> kazan!</p><div class="upg-lvl">Mevcut Bonus: +%${state.prestigeCount*50}</div></div><button class="buy-btn gem-btn" ${state.money<req?'disabled':''} onclick="doPrestige(${req})">${fmt(req)} 💵</button>`;body.appendChild(pc);return;
+ }
+ title.textContent='🚆 Demircan Oteli • Vagon & Ekip';
+ const allTabs=[...WAGON_META.map(m=>({key:m.key,label:m.name.split(' ')[1]})),{key:'staff',label:'🤖 Otomasyon'}];
+ allTabs.forEach(t=>{const b=document.createElement('button');b.className='tab'+(currentTabKey===t.key?' active':'');b.textContent=t.label;b.onclick=()=>{currentTabKey=t.key;renderModal()};tabs.appendChild(b)});
+ if(currentTabKey==='staff'){
+  const items=[
+   {key:'cleanerBot',name:'Temizlik Robotu Filosu',desc:'Vagonlardaki çöpleri otomatik toplar ve memnuniyeti yüksek tutar.',lvl:state.staff.cleanerBot,max:5,cost:Math.floor(400*Math.pow(3.2,state.staff.cleanerBot))},
+   {key:'manager',name:'Baş Kondüktör & Müdür',desc:'Oyundan çıktığında çevrimdışı kazanç oranını artırır.',lvl:state.staff.manager,max:5,cost:Math.floor(600*Math.pow(3.5,state.staff.manager))},
+   {key:'marketing',name:'Bilet Kampanyası',desc:'İstasyondan trene binen yolcu hızını artırır.',lvl:state.staff.marketing,max:10,cost:Math.floor(350*Math.pow(2.4,state.staff.marketing))}
+  ];
+  items.forEach(s=>{const max=s.lvl>=s.max,c=document.createElement('div');c.className='upg-card';c.innerHTML=`<div class="upg-info"><h4>${s.name}</h4><p>${s.desc}</p><div class="upg-lvl">Seviye ${s.lvl} / ${s.max}</div></div><button class="buy-btn" ${max||state.money<s.cost?'disabled':''} onclick="buyStaff('${s.key}',${s.cost})">${max?'MAKS':fmt(s.cost)+' 💵'}</button>`;body.appendChild(c)});return;
+ }
+ const meta=WAGON_META.find(m=>m.key===currentTabKey);if(!meta)return;const w=state.wagons[meta.key];
+ if(!w.unlocked){const c=document.createElement('div');c.className='upg-card';c.innerHTML=`<div class="upg-info"><h4>🔒 ${meta.name} Kilitli</h4><p>Bu vagonu trene ekleyerek yeni hizmetler sun ve gelirini artır.</p><div class="upg-lvl">Taban Gelir: +${fmt(meta.baseIncome)} 💵/sn</div></div><button class="buy-btn" ${state.money<meta.unlockCost?'disabled':''} onclick="unlockWagon('${meta.key}',${meta.unlockCost})">Aç (${fmt(meta.unlockCost)} 💵)</button>`;body.appendChild(c);return}
+ const labels={
+  level:['Vagon Genişletme','Vagon kapasitesini ve lüksünü artırır.'],desks:['Ek Resepsiyon Bankosu','Aynı anda daha fazla yolcu giriş yapar.'],speed:['Hızlı Check-in Sistemi','İşlem süresini kısaltır.'],beds:['Konforlu Yatak Ekle','Konaklayan yolcu sayısını artırır.'],comfort:['Ortopedik Yatak & Klima','Yolcu memnuniyetini ve bahşişi artırır.'],tables:['Yemek Masası Ekle','Restoran kapasitesini büyütür.'],chefs:['Usta Aşçı İstihdam Et','Yemek servis hızını artırır.'],seats:['Lüks Koltuk','Dinlenme bölümüne yeni koltuklar ekler.'],bartender:['Profesyonel Servis Ekibi','İçecek servis hızını artırır.'],baths:['Termal Havuz Kabini','Spa kapasitesini artırır.'],therapist:['Spa Görevlisi','Spa hizmet kalitesini yükseltir.'],games:['Yeni Eğlence Oyunu','Oyun salonuna yeni etkinlikler ekler.'],attendant:['Oyun Salonu Görevlisi','Misafirlere oyunlarda yardımcı olur.'],suites:['Demircan VIP Süit Odası','VIP konuk kapasitesini artırır.'],butler:['Özel Kahya Hizmeti','VIP hizmet kalitesini artırır.'],priceLvl:['Bilet & Hizmet Tarifesi','Bu vagondan elde edilen ücreti artırır.']
+ };
+ Object.keys(w).filter(k=>k!=='unlocked').forEach(sk=>{const lvl=w[sk],cost=Math.floor((meta.unlockCost||120)*.45*Math.pow(1.55,lvl)),[t,d]=labels[sk]||[sk,'Vagon performansını artırır.'],c=document.createElement('div');c.className='upg-card';c.innerHTML=`<div class="upg-info"><h4>${t}</h4><p>${d}</p><div class="upg-lvl">Seviye ${lvl}</div></div><button class="buy-btn" ${state.money<cost?'disabled':''} onclick="upgradeWagon('${meta.key}','${sk}',${cost})">${fmt(cost)} 💵</button>`;body.appendChild(c)});
+}
+function unlockWagon(key,cost){if(state.money<cost)return;state.money-=cost;state.wagons[key].unlocked=true;focusWagon(WAGON_META.findIndex(m=>m.key===key));saveGame(true);renderModal()}
+function upgradeWagon(key,subKey,cost){if(state.money<cost)return;state.money-=cost;state.wagons[key][subKey]++;saveGame(false);renderModal()}
+function buyStaff(key,cost){if(state.money<cost)return;state.money-=cost;state.staff[key]++;saveGame(true);renderModal()}
+function buyRoute(idx){const r=ROUTES[idx];if(state.routeIndex<idx){if(state.money<r.cost)return;state.money-=r.cost;state.routeIndex=idx}saveGame(true);renderModal()}
+function doPrestige(req){if(state.money<req)return;const gems=state.gems,next=state.prestigeCount+1;state=JSON.parse(JSON.stringify(DEFAULT_STATE));state.gems=gems+50;state.prestigeCount=next;saveGame(true);closeModal();renderNavBar();showToast(`👑 Prestij #${next} aktif! Kalıcı +%${next*50} gelir!`)}
+function openSettings(){
+ const body=document.getElementById('modalBody');document.getElementById('modalTitle').textContent='⚙️ Kayıt & Oyun Bilgisi';document.getElementById('modalTabs').innerHTML='';
+ body.innerHTML=`<div class="upg-card"><div class="upg-info"><h4>💾 Otomatik Kayıt Aktif</h4><p>İlerlemeniz tarayıcı hafızasına her 5 saniyede bir ve oyundan çıkarken otomatik kaydedilir.</p><div class="upg-lvl">Anlık Gelir: ${fmt(calcIncomePerSec())} 💵/sn • Prestij: ${state.prestigeCount}</div></div><button class="buy-btn" onclick="saveGame(true)">Şimdi Kaydet</button></div><div class="upg-card"><div class="upg-info"><h4>🗑️ Oyunu Sıfırla</h4><p>Tüm ilerlemeyi silip en baştan başlamak istersen kullan.</p></div><button class="buy-btn" style="background:#ef4444;color:#fff" onclick="resetAll()">Sıfırla</button></div>`;
+ document.getElementById('modalBackdrop').classList.add('open');
+}
+function resetAll(){if(!confirm('Bütün oyun ilerlemesi silinsin mi?'))return;localStorage.removeItem(SAVE_KEY);state=JSON.parse(JSON.stringify(DEFAULT_STATE));saveGame(false);closeModal();renderNavBar();showToast('Oyun sıfırlandı.')}
+
+// ==================== İZOMETRİK ÇİZİM & OYUN DÖNGÜSÜ ====================
+function drawIsoBox(cx,cy,w,d,h,topCol,leftCol,rightCol){
+ const p=(x,y,z)=>({x:cx+(x-y)*.86,y:cy+(x+y)*.48-z}),t1=p(-w/2,-d/2,h),t2=p(w/2,-d/2,h),t3=p(w/2,d/2,h),t4=p(-w/2,d/2,h),b2=p(w/2,-d/2,0),b3=p(w/2,d/2,0),b4=p(-w/2,d/2,0);
+ ctx.fillStyle=leftCol;ctx.beginPath();ctx.moveTo(t4.x,t4.y);ctx.lineTo(t3.x,t3.y);ctx.lineTo(b3.x,b3.y);ctx.lineTo(b4.x,b4.y);ctx.closePath();ctx.fill();
+ ctx.fillStyle=rightCol;ctx.beginPath();ctx.moveTo(t3.x,t3.y);ctx.lineTo(t2.x,t2.y);ctx.lineTo(b2.x,b2.y);ctx.lineTo(b3.x,b3.y);ctx.closePath();ctx.fill();
+ ctx.fillStyle=topCol;ctx.beginPath();ctx.moveTo(t1.x,t1.y);ctx.lineTo(t2.x,t2.y);ctx.lineTo(t3.x,t3.y);ctx.lineTo(t4.x,t4.y);ctx.closePath();ctx.fill();
+}
+function drawWagon(meta,idx){
+ const wp=wagonWorldPos(idx),w=state.wagons[meta.key],unlocked=w.unlocked;
+ drawIsoBox(wp.x,wp.y,240,125,22,unlocked?'#f8fafc':'#475569',unlocked?'#dc2626':'#334155',unlocked?'#991b1b':'#1e293b');
+ drawIsoBox(wp.x-46,wp.y-26,240,12,54,'#e2e8f0','#cbd5e1','#94a3b8');
+ if(!unlocked){ctx.fillStyle='rgba(15,23,42,.72)';ctx.beginPath();ctx.arc(wp.x,wp.y-28,28,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fbbf24';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('🔒 '+fmt(meta.unlockCost),wp.x,wp.y-24);ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.fillText(meta.name,wp.x,wp.y+8);return}
+ if(meta.key==='reception')drawIsoBox(wp.x+15,wp.y-10,32,70,26,'#ef4444','#b91c1c','#7f1d1d');
+ else if(meta.key==='sleeper1'||meta.key==='sleeper2'){for(let b=-1;b<=1;b+=2)drawIsoBox(wp.x+b*42,wp.y+b*18,56,34,18,'#3b82f6','#1d4ed8','#1e3a8a')}
+ else if(meta.key==='bistro'||meta.key==='lounge'){drawIsoBox(wp.x-20,wp.y-18,90,26,24,'#f59e0b','#d97706','#92400e');drawIsoBox(wp.x+25,wp.y+15,36,36,16,'#a855f7','#7e22ce','#581c87')}
+ else if(meta.key==='spa')drawIsoBox(wp.x,wp.y-4,95,58,16,'#38bdf8','#0284c7','#0369a1');
+ else if(meta.key==='arcade'){drawIsoBox(wp.x-25,wp.y-10,40,40,24,'#10b981','#059669','#065f46');drawIsoBox(wp.x+30,wp.y+10,40,40,24,'#f43f5e','#e11d48','#9f1239')}
+ else if(meta.key==='vip')drawIsoBox(wp.x,wp.y-6,110,62,22,'#facc15','#eab308','#a16207');
+ ctx.fillStyle='rgba(15,23,42,.8)';ctx.fillRect(wp.x-68,wp.y-76,136,20);ctx.fillStyle='#f8fafc';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(meta.name,wp.x,wp.y-62);
+}
+let lastTime=performance.now(),incomeAccum=0,spawnTimer=0,trashTimer=0;
+function update(dt){
+ const mult=speedBoostTimer>0?2:1;if(speedBoostTimer>0)speedBoostTimer=Math.max(0,speedBoostTimer-dt);
+ camX+=(targetCamX-camX)*Math.min(1,dt*8);camY+=(targetCamY-camY)*Math.min(1,dt*8);trainOffset=(trainOffset+dt*110*mult)%600;state.gameMinutes=(state.gameMinutes+dt*4*mult)%1440;
+ incomeAccum+=calcIncomePerSec()*mult*dt;if(incomeAccum>=1){const whole=Math.floor(incomeAccum);incomeAccum-=whole;state.money+=whole;state.totalEarned+=whole}
+ spawnTimer+=dt*(1+state.staff.marketing*.25)*mult;if(spawnTimer>1.3){spawnTimer=0;spawnPassenger()}
+ passengers.forEach(p=>{const dx=p.tx-p.x,dy=p.ty-p.y,dist=Math.hypot(dx,dy);if(dist>3){p.x+=dx/dist*32*dt*mult;p.y+=dy/dist*32*dt*mult}else{p.progress+=p.speed*dt*mult;if(p.progress>=1){p.progress=0;state.totalServed++;const wp=wagonWorldPos(p.wIdx);p.tx=wp.x+(Math.random()-.5)*95;p.ty=wp.y+(Math.random()-.5)*55;const tip=Math.max(5,Math.floor(WAGON_META[p.wIdx].baseIncome*ROUTES[state.routeIndex].mult*.6));state.money+=tip;state.totalEarned+=tip;addFloatingText(p.x,p.y-24,`+${fmt(tip)} 💵`)}}});
+ trashTimer+=dt;if(trashTimer>4.5){trashTimer=0;spawnTrash()}
+ if(trashes.length)state.satisfaction=Math.max(40,state.satisfaction-trashes.length*.35*dt);else state.satisfaction=Math.min(100,state.satisfaction+1.5*dt);
+ if(state.staff.cleanerBot>0&&trashes.length&&Math.random()<dt*state.staff.cleanerBot*.45){const t=trashes.pop();state.totalCleaned++;addFloatingText(t.x,t.y-12,'🤖 Temizlendi','#93c5fd')}
+ for(let i=floatingTexts.length-1;i>=0;i--){const f=floatingTexts[i];f.y+=f.vy*dt;f.alpha-=dt*.85;if(f.alpha<=0)floatingTexts.splice(i,1)}
+}
+function draw(){
+ const route=ROUTES[Math.min(state.routeIndex,ROUTES.length-1)];ctx.fillStyle=route.bg;ctx.fillRect(0,0,W,H);ctx.save();ctx.translate(W/2-camX,H/2-camY);
+ ctx.fillStyle=route.tree;trees.forEach(tr=>{ctx.beginPath();ctx.arc(tr.x-trainOffset*.85,tr.y+trainOffset*.48,tr.size,0,Math.PI*2);ctx.fill()});
+ ctx.strokeStyle=route.track;ctx.lineWidth=34;ctx.beginPath();ctx.moveTo(-600,340);ctx.lineTo(3200,-1800);ctx.stroke();
+ const loco=wagonWorldPos(WAGON_META.length);drawIsoBox(loco.x,loco.y,210,120,48,'#2563eb','#1d4ed8','#1e3a8a');drawIsoBox(loco.x+35,loco.y-20,70,80,66,'#60a5fa','#3b82f6','#1d4ed8');
+ for(let i=WAGON_META.length-1;i>=0;i--)drawWagon(WAGON_META[i],i);
+ trashes.forEach(t=>{ctx.fillStyle=t.type==='paper'?'#fef08a':'#38bdf8';ctx.beginPath();ctx.arc(t.x,t.y,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0f172a';ctx.lineWidth=1.5;ctx.stroke()});
+ passengers.forEach(p=>{ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y-10,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fde68a';ctx.beginPath();ctx.arc(p.x,p.y-21,5.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#22c55e';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(p.x,p.y-32,5,-Math.PI/2,-Math.PI/2+p.progress*Math.PI*2);ctx.stroke()});
+ floatingTexts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.alpha);ctx.fillStyle=f.color;ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y);ctx.globalAlpha=1});ctx.restore();
+ document.getElementById('uiMoney').textContent=fmt(state.money);document.getElementById('uiGems').textContent=fmt(state.gems);document.getElementById('uiStars').textContent=calcStarRating();document.getElementById('uiSat').textContent='%'+Math.round(state.satisfaction);
+ const hh=String(Math.floor(state.gameMinutes/60)).padStart(2,'0'),mm=String(Math.floor(state.gameMinutes%60)).padStart(2,'0');document.getElementById('uiRoute').innerHTML=`🚂 Demircan • ${route.name} • <span id="uiClock">${hh}:${mm}</span>`;
+ document.getElementById('boostBtn').textContent=speedBoostTimer>0?Math.ceil(speedBoostTimer)+'s':'⚡';updateQuestUI();
+}
+function loop(now){const dt=Math.min(.1,(now-lastTime)/1000);lastTime=now;update(dt);draw();requestAnimationFrame(loop)}
+renderNavBar();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
